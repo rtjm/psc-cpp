@@ -29,8 +29,8 @@ class DmxSender {
 		static vector<int> scen_ids;
 		static map<int, PlayScenari> my_scens;
 
-		//ola::DmxBuffer WholeDmxFrame;
-		//ola::client::OlaClientWrapper wrapper;
+		ola::DmxBuffer WholeDmxFrame;
+		ola::client::OlaClientWrapper wrapper;
 		
 		void timer_start(std::function<void(void)> func, unsigned int interval)
 		{
