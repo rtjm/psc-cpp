@@ -78,7 +78,7 @@ const string currentDateTime()
 }
 
 void log(const string& msg){
-	cout << msg << endl;	
+	cout << "CONSOLE LOG - " << currentDateTime() << "-:" << msg << endl;	
 }
 
 void stripNewlines(char* p) {
@@ -144,7 +144,6 @@ return result;
 vector<string> explode(const string& str, const char& ch) {
     string next;
     vector<string> result;
-
     // For each character in the string
     for (string::const_iterator it = str.begin(); it != str.end(); it++) {
         // If we've hit the terminal character

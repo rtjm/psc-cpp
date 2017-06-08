@@ -39,6 +39,7 @@ class dmxsender
 //	public:	
 	dmxsender()
 	{
+		/*
 		ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
 		if (!wrapper.Setup()) 
 		{
@@ -48,7 +49,7 @@ class dmxsender
  		ola::io::SelectServer *ss = wrapper.GetSelectServer();
  		ss->RegisterRepeatingTimeout(250, ola::NewCallback(&SendData, &wrapper));
  		// Start the main loop
- 		ss->Run();
+ 		ss->Run();*/
 		cout << "Constructor dmxsender object" << endl;
 	}
 	
