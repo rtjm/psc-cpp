@@ -37,99 +37,98 @@ void parseMessage(string msg)
 	// singleton call
 	DmxSender &d = DmxSender::getInstance();
 
-	if(msg.size()==0)
+	if(msg.size() == 0)
 	{
 		return;
 	}
 	string command, data;
 	std::vector<std::string> result = explode(msg, '.');
-	if (result.size()>1)
-	{
-			
+	if (result.size() > 1)
+	{			
 		command = result[0];	
 		data = result[1];	
 	}
 	else
 	{
-		command=msg;
+		command = msg;
 	}	
 	cout << "COMMAND:" << command << " DATA: " << data << endl;
-	if (command=="start" || command=="stop" || command=="status" || command=="reset" || command=="log")
+	if (command == "start" || command == "stop" || command == "status" || command == "reset" || command == "log")
 	{
-		if(data=="")
+		if(data == "")
 		{
-			log("Specify scenarii iD");		
+			log("Specify scenarii id");		
 			return;
 		}
 	}
-	int idata=-1;
+	int idata = -1;
 	
 	if (hasOnlyDigits(data))
 	{	
 		idata = stoi(data);
 	}	
 	/*
-	if(command=="ulog")
+	if(command == "ulog")
 	{		
 		d.ChangeUnivLogLevel();
 	}	
 
-	if(command=="log")
+	if(command == "log")
 	{		
 		d.ChangeLogLevel(idata);
 	}
 
-	if(command=="halt")
+	if(command == "halt")
 	{		
 		d.HaltDmxSender();
 	}
 
-	if(command=="resume")
+	if(command == "resume")
 	{		
 		d.ResumeDmxSender();
 	}
 
-	if(command=="close")
+	if(command == "close")
 	{		
 		d.CloseDmxSender();
 	}
 	*/
-	if(command=="start")
+	if(command == "start")
 	{		
-		d.StartScenarii(idata);
+		d.StartScenari(idata);
 	}
 	/*
-	if(command=="stop")
+	if(command == "stop")
 	{		
 		d.StopScenari(idata);
 	}    
 	*/
-	if(command=="status")
+	if(command == "status")
 	{		
 		d.StatusScenari(idata);
 	}    
 	/*
-	if(command=="reset")
+	if(command == "reset")
 	{		
 		d.ResetScenari(idata);
 	}    
 
-	if(command=="list")
+	if(command == "list")
 	{		
 	//		d.ResetScenari(idata);
 	}    
 
-	if(command=="stopall")
+	if(command == "stopall")
 	{		
 		d.StopAll();
 	}    
 
-	if(command=="resetall")
+	if(command == "resetall")
 	{		
 		d.ResetAll();
 	}    
 
-	if(command=="bo")
+	if(command == "bo")
 	{		
 		d.StopAll();
 		d.BlackOut();
@@ -157,7 +156,7 @@ void *connection_handler(void *socket_desc)
 		log(client_message);
 		log("Parsing message");
 		parseMessage(client_message);
-		write(sock,"Message received",16);
+		write(sock, "Message received", 16);
     }
 
     if(read_size == 0)

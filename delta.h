@@ -100,8 +100,6 @@ class DmxSender {
 			
 			// Start the main loop
 			//ss->Run();
-
-			cout << "CONSTRUCTOR" << endl;
 		}
     public:			
     	
@@ -157,36 +155,50 @@ class DmxSender {
 
 			}
 			
-			// For each scenarii in list
+			// For each scenari in list
 			for(int s = 0; s < scen_ids.size(); s++)			
 			{
+				cout << "// For each scenari in list: " << scen_ids.size() << endl;
 				try
 				{
-					// create scenari instance if needed
+					// store instance in dict, only once
 					int scenarid = scen_ids[s];
 					auto search = my_scens.find(scenarid);
 					if(search == my_scens.end())
 					{
-						log("Playscenarii creation");
-						PlayScenari p(scenarid,tick_interval);						
+						PlayScenari p(scenarid,tick_interval);					
+						//cout << "Playscenari object created at address	" << &p << endl;
 						my_scens.insert(std::make_pair(scenarid, p));
+						//my_scens.insert(std::make_pair(scenarid, new PlayScenari(scenarid, tick_interval)));
 						// Dump my_scens
 						for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
 						{
 							std::cout << it->first << " " << &it->second << endl;
 						}
-						
-						
 					}
+					
+					//auto p = my_scens[s];
+					//my_scens[s]->second->ComputeNextFrame();
 				}
 				catch (int e)
 				{
 				}	
 			}
-						
+			// for each instance, compute frame
+			for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
+			{
+				PlayScenari p = it->second;
+				p.ComputeNextFrame();
+				//AssignChannel(p.patch,p.patch);				
+			}									
 		}
 		
-		void StartScenarii(int scenarid)
+		static void AssignChannel(vector<int> offset, vector<int> values)
+		{
+			
+		}
+		
+		void StartScenari(int scenarid)
 		{
 			if(std::find(scen_ids.begin(),scen_ids.end(),scenarid)==scen_ids.end())			// Check not to add twice
 			{				
@@ -237,7 +249,7 @@ class DmxSender {
 			{
 				cout << "STATUS FOR " << &search->second << endl;
 				auto p = search->second;
-				p.Status();				
+				//p.Status();				
 			}
 			cout << "StatusScenari CALLED IN DELTA:" << scenarid << endl;
 		}
