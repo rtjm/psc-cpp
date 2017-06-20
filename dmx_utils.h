@@ -12,6 +12,8 @@ using namespace std;
 using std::cout;
 using std::endl;
 
+
+
 void error(const char *msg)
 {
 	perror(msg);
@@ -190,5 +192,39 @@ MYSQL_RES* openRecordset(string query)
 
 	resultset = mysql_store_result(connection);	
 	return resultset;
+}
+
+int sqlFramerate()
+{
+	int result = 25; // Default to 40 fps	
+	MYSQL_RES *resultset = openRecordset("SELECT freq_ms FROM dmx_engine WHERE id=1;");
+	MYSQL_ROW row;
+	string sfreq_ms;
+	while ((row = mysql_fetch_row(resultset))) 
+	{ 
+		sfreq_ms = row[0];
+	}			
+	if(hasOnlyDigits(sfreq_ms)) 
+	{
+		result = stoi(sfreq_ms);
+	}
+	return result;
+}
+
+int sqlUniverses()
+{			
+	int result = 1; // Default to 1 universe
+	MYSQL_RES *resultset = openRecordset("SELECT univ_qty FROM dmx_preferences WHERE id=1;");
+	MYSQL_ROW row;
+	string sfreq_ms;
+	while ((row = mysql_fetch_row(resultset))) 
+	{ 
+		sfreq_ms = row[0];
+	}			
+	if(hasOnlyDigits(sfreq_ms)) 
+	{
+		result = stoi(sfreq_ms);
+	}
+	return result;
 }
 #endif

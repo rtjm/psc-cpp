@@ -15,27 +15,49 @@ g++ -pthread -o server $(mysql_config --cflags)  server.cpp $(mysql_config --lib
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <ola/DmxBuffer.h>
+#include <ola/io/SelectServer.h>
+#include <ola/Logging.h>
+#include <ola/client/ClientWrapper.h>
+#include <ola/Callback.h>
+#include <ola/thread/Thread.h>
+
 #include "dmx_utils.h"
-//#include "dmx_sender.h"
-#include "delta.h"
+#include "dmxsender.h"		// instanciated object approach
+//#include "delta.h"		// singleton approach
 
 using namespace std;
 using std::cout;
 using std::endl;
 
+// This function is run from the OLA Thread, if you use variables in the main
+// program then you'll need to add locking.
 
-DmxSender *DmxSender::instance = 0;
+DmxSender ola_thread;
 
-bool DmxSender::_activesender; 
-vector<int> DmxSender::vectorWholeDmxFrame;
-int DmxSender::tick_interval, DmxSender::univ_qty;	
-vector<int> DmxSender::scen_ids;
-map<int, PlayScenari> DmxSender::my_scens;
+bool SendData(ola::client::OlaClientWrapper *wrapper, DmxSender *d) 
+{
+	d->SendDmxFrame(/*wrapper*/);	
+	return true;
+	static unsigned int universe = 1;
+	static unsigned int i = 0;
+	ola::DmxBuffer buffer;
+ 
+ 	buffer.Blackout();
+ 	buffer.SetChannel(0, i);
+ 	wrapper->GetClient()->SendDMX(universe, buffer, ola::client::SendDMXArgs());
+ 	if (++i == 100) 
+ 	{
+ 		//wrapper->GetSelectServer()->Terminate();
+ 		i=0;
+ 	}
+ 	return true;
+}
 
 void parseMessage(string msg) 
 {
 	// singleton call
-	DmxSender &d = DmxSender::getInstance();
+	// DmxSender &d = DmxSender::getInstance();
 
 	if(msg.size() == 0)
 	{
@@ -94,8 +116,11 @@ void parseMessage(string msg)
 	}
 	*/
 	if(command == "start")
-	{		
-		d.StartScenari(idata);
+	{	
+		cout << "Calling d.StartScenari(idata);" << endl;	
+		//d->StartScenari(idata);
+		ola_thread.StartScenari(idata);
+		cout << "Called d.StartScenari(idata);" << endl;
 	}
 	/*
 	if(command == "stop")
@@ -105,7 +130,7 @@ void parseMessage(string msg)
 	*/
 	if(command == "status")
 	{		
-		d.StatusScenari(idata);
+		//d.StatusScenari(idata);
 	}    
 	/*
 	if(command == "reset")
@@ -177,6 +202,22 @@ void *connection_handler(void *socket_desc)
 
 int main(int argc, char *argv[])
 {	
+ 	//OlaThread ola_thread;
+ 	//DmxSender ola_thread;
+ 	if (!ola_thread.Start()) 
+ 	{
+ 		std::cerr << "Failed to start OLA thread" << endl;
+ 		exit(1);
+ 	}
+ 	// Control is returned to the main program here.
+ 	ola::io::SelectServer *ss = ola_thread.GetSelectServer();
+ 	//ss->RegisterRepeatingTimeout(ola_thread._tick_interval, ola::NewCallback(&SendData, &ola_thread.m_wrapper));	// WORKING
+ 	ss->RegisterRepeatingTimeout(ola_thread._tick_interval, ola::NewCallback(&SendData, &ola_thread.m_wrapper, &ola_thread));	// WORKING
+ 	//ss->RegisterRepeatingTimeout(10, ola::NewCallback(&DmxSender::SendDmxFrame, &ola_thread.m_wrapper));
+ 	
+ 	// SendDmxFrame
+ // The main program continues...
+ 	
 	/*
 	// USED TO CHECK THE SINGLETON DESIGN PATTERN. ONLY ONE INSTANCE OF THE DELTA CLASS	
 	Delta &d1 = Delta::getInstance();
@@ -186,8 +227,10 @@ int main(int argc, char *argv[])
     return 0;
 	*/
 
+	//DmxSender dmxSender;
 	
-
+	
+	
 	int socket_desc , client_sock , c , *new_sock, portno;
 	string port;
 	port = GetKey("PORT");
@@ -213,11 +256,23 @@ int main(int argc, char *argv[])
 
 	//Listen
     listen(socket_desc , 5);
-
+	/*if(!wrapper.Setup())	
+	{
+		error("Wrapper Setup failed");
+	}
+	cout << d._tick_interval << endl;*/
+	// Create a timeout and register it with the SelectServer
+	//ola::io::SelectServer *ss = wrapper.GetSelectServer();
+	//ss->RegisterRepeatingTimeout(d._tick_interval, ola::NewCallback(&SendData, &wrapper));
+	//ss->RegisterRepeatingTimeout(d._tick_interval, ola::NewCallback(&d.SendDmxFrame, &wrapper));
+	// Start the main loop
+	//cout <<	"// Start the main loop" << endl;
+	//ss->Run();
+	
 	log("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
 	
-	while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
+	while((client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
         log("Connection accepted");
 
@@ -238,6 +293,8 @@ int main(int argc, char *argv[])
     {
         error("ERROR client_sock");
     }
+    
+    
 
 }
 
