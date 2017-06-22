@@ -27,14 +27,9 @@ class DmxSender: public ola::thread::Thread  {
 	 		cout << "THREAD" << endl;
 	 		Terminated = false;
 			_activesender = true;
-			univloglevel = 0;
-			// SQL Framerate
-			_tick_interval = sqlFramerate();	
-			cout << "freq_ms:" << _tick_interval << endl;	
+			univloglevel = 0;					
 			
-			// SQL Universe
-			univ_qty = sqlUniverses();		
-			cout << "univ_qty:" << univ_qty << endl;	
+			
 			
 			// array to store full frame
 			vectorWholeDmxFrame = InitVector(univ_qty);		// size vectorWholeDmxFrame to 512*univ_qty and fill 0
@@ -43,12 +38,13 @@ class DmxSender: public ola::thread::Thread  {
 	 		m_wrapper.GetSelectServer()->Run();
 	 		return NULL;
 	 	}
+    
     public:	
     	bool _activesender, Terminated;
 		int _tick_interval, univ_qty, univloglevel;	
 		vector<int> vectorWholeDmxFrame;
 		vector<int> scen_ids;
-		map<int, PlayScenari> my_scens;
+		map<int, PlayScenari*> my_scens;
 		ola::DmxBuffer WholeDmxFrame;
 		ola::client::OlaClientWrapper m_wrapper;
 
@@ -59,7 +55,12 @@ class DmxSender: public ola::thread::Thread  {
 			 	cout << "OLA FAIL" << endl;
 		 		return false;
 		 	}
-		 	cout << "OLA SUCCEED" << endl;
+		 	// SQL Framerate
+			_tick_interval = sqlFramerate();	
+		 	cout << "OLA SUCCEED FREQ MS:" << _tick_interval << endl;
+		 	// SQL Universe
+			univ_qty = sqlUniverses();		
+			cout << "univ_qty:" << univ_qty << endl;	
 	 		return ola::thread::Thread::Start();
 	 	}
 	 	
@@ -87,13 +88,13 @@ class DmxSender: public ola::thread::Thread  {
 			
 			// Send data to universes
 			for(int u = 0; u < univ_qty; u++)
-			{
+			{				
 				vector<int> partialFrameVector;
 				for(int i= u * 512; i < u*512 +512; i++)
 				{
 					partialFrameVector.push_back(vectorWholeDmxFrame[i]);		
 				}
-				// vectorWholeDmxFrame splitted in partialFrameVector
+				// vectorWholeDmxFrame splitted in partialFrameVector: equivalent of FramePart in SplittedFrame (python)
 				string partialFrame = buildDmxFrame(partialFrameVector);
 				ola::DmxBuffer buffer;
  				buffer.Blackout();
@@ -101,7 +102,7 @@ class DmxSender: public ola::thread::Thread  {
 				try 
 				{
 					int _u = u + 1;
- 					m_wrapper.GetClient()->SendDMX(_u, buffer, ola::client::SendDMXArgs());
+ 					m_wrapper.GetClient()->SendDMX(_u, buffer, ola::client::SendDMXArgs());	// OLA
 				}
 				catch (int e)
 				{
@@ -116,23 +117,30 @@ class DmxSender: public ola::thread::Thread  {
 				try
 				{
 					// store instance in dict, only once
+					
 					int scenarid = scen_ids[s];
 					auto search = my_scens.find(scenarid);
 					if(search == my_scens.end())
 					{
-						PlayScenari p(scenarid,_tick_interval);					
+						//PlayScenari p(scenarid,_tick_interval);					
 						//cout << "Playscenari object created at address	" << &p << endl;
-						my_scens.insert(std::make_pair(scenarid, p));
-						//my_scens.insert(std::make_pair(scenarid, new PlayScenari(scenarid, tick_interval)));
+						//my_scens.insert(std::make_pair(scenarid, p));
+						my_scens.insert(std::make_pair(scenarid, new PlayScenari(scenarid, _tick_interval)));
 						// Dump my_scens
 						for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
 						{
 							std::cout << it->first << " " << &it->second << endl;
 						}
+						//currentplay = &p;
 					}
+					PlayScenari *currentplay = my_scens.at(scenarid);
+					cout << "current PlayScenari " << currentplay->scenari << "/" << currentplay->new_frame.size() << endl;
+					AssignChannels(currentplay->patch, currentplay->new_frame);
+					
 				}
 				catch (int e)
 				{
+					cout << "NOT STARTED" << endl;
 				}	
 			}
 
@@ -141,16 +149,21 @@ class DmxSender: public ola::thread::Thread  {
 			{
 				for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
 				{
-					PlayScenari p = it->second;
-					p.ComputeNextFrame();
+					PlayScenari *p = it->second;
+					p->ComputeNextFrame();
+					
 				}
 			}				
 			return true;
 		}
 		
-		void AssignChannel(vector<int> offset, vector<int> values)
+		void AssignChannels(int offset, vector<int> values)
 		{
-			
+			cout << "AssignChannels " << values.size() << " OFFSET " << offset << endl;
+			for (int i = offset; i < offset + values.size(); i++)
+			{
+				vectorWholeDmxFrame.at(i) = values.at(i-offset);
+			}	
 		}
 		
 		void StartScenari(int scenarid)

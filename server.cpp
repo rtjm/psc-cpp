@@ -33,13 +33,14 @@ using std::endl;
 // This function is run from the OLA Thread, if you use variables in the main
 // program then you'll need to add locking.
 
+
 DmxSender ola_thread;
 
 bool SendData(ola::client::OlaClientWrapper *wrapper, DmxSender *d) 
 {
 	d->SendDmxFrame(/*wrapper*/);	
 	return true;
-	static unsigned int universe = 1;
+	/*static unsigned int universe = 1;
 	static unsigned int i = 0;
 	ola::DmxBuffer buffer;
  
@@ -51,7 +52,7 @@ bool SendData(ola::client::OlaClientWrapper *wrapper, DmxSender *d)
  		//wrapper->GetSelectServer()->Terminate();
  		i=0;
  	}
- 	return true;
+ 	return true;*/
 }
 
 void parseMessage(string msg) 
@@ -209,6 +210,7 @@ int main(int argc, char *argv[])
  		std::cerr << "Failed to start OLA thread" << endl;
  		exit(1);
  	}
+ 	
  	// Control is returned to the main program here.
  	ola::io::SelectServer *ss = ola_thread.GetSelectServer();
  	//ss->RegisterRepeatingTimeout(ola_thread._tick_interval, ola::NewCallback(&SendData, &ola_thread.m_wrapper));	// WORKING

@@ -42,12 +42,16 @@ string PrepareString(string stringinput) {
 	return str;
 }
 
+
 vector<int> InitVector(int universes)
 {
 	vector<int> result;
 	for(int i = 0; i< universes; i++)
 	{
-		result.push_back(0);
+		for(int j = 0; j <512; j++)
+		{
+			result.push_back(0);
+		}
 	}
 	return result;
 }
