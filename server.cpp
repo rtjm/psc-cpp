@@ -90,32 +90,32 @@ void parseMessage(string msg)
 	{	
 		idata = stoi(data);
 	}	
-	/*
+	
 	if(command == "ulog")
 	{		
-		d.ChangeUnivLogLevel();
+		ola_thread.ChangeUnivLogLevel();
 	}	
 
 	if(command == "log")
 	{		
-		d.ChangeLogLevel(idata);
+		ola_thread.ChangeLogLevel(idata);
 	}
 
 	if(command == "halt")
 	{		
-		d.HaltDmxSender();
+		ola_thread.HaltDmxSender();
 	}
 
 	if(command == "resume")
 	{		
-		d.ResumeDmxSender();
+		ola_thread.ResumeDmxSender();
 	}
 
 	if(command == "close")
 	{		
-		d.CloseDmxSender();
+		ola_thread.CloseDmxSender();
 	}
-	*/
+	
 	if(command == "start")
 	{	
 		cout << "Calling d.StartScenari(idata);" << endl;	
@@ -123,42 +123,42 @@ void parseMessage(string msg)
 		ola_thread.StartScenari(idata);
 		cout << "Called d.StartScenari(idata);" << endl;
 	}
-	/*
+	
 	if(command == "stop")
 	{		
-		d.StopScenari(idata);
+		ola_thread.StopScenari(idata);
 	}    
-	*/
+	
 	if(command == "status")
 	{		
-		//d.StatusScenari(idata);
+		//ola_thread.StatusScenari(idata);
 	}    
-	/*
+	
 	if(command == "reset")
 	{		
-		d.ResetScenari(idata);
+		ola_thread.ResetScenari(idata);
 	}    
 
 	if(command == "list")
 	{		
-	//		d.ResetScenari(idata);
+	//		ola_thread.ResetScenari(idata);
 	}    
 
 	if(command == "stopall")
 	{		
-		d.StopAll();
+		ola_thread.StopAll();
 	}    
 
 	if(command == "resetall")
 	{		
-		d.ResetAll();
+		ola_thread.ResetAll();
 	}    
 
 	if(command == "bo")
 	{		
-		d.StopAll();
-		d.BlackOut();
-	}  */  
+		ola_thread.StopAll();
+		ola_thread.BlackOut();
+	}
 }
 
 
