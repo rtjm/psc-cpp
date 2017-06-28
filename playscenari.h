@@ -38,7 +38,7 @@ class PlayScenari
 			current_i = -1;
 			GetNextStep();
 			ChangeStep();
-			cout << "PlayScenari INIT: scenari " << scenari << " - tickint " << tickint << endl;
+			//cout << "PlayScenari INIT: scenari " << scenari << " - tickint " << tickint << endl;
 			//exit(0);
 		}			
 		
@@ -78,8 +78,8 @@ class PlayScenari
 			{
 				pafter.push_back(0);
 			}
-			log("buildDmxFrame from pafter");
-			cout << buildDmxFrame(pafter);
+			//log("buildDmxFrame from pafter");
+			cout << "pafter:"  << endl << buildDmxFrame(pafter) << endl;
 		} 
 		
 		void GetNextStep()
@@ -117,7 +117,7 @@ class PlayScenari
 				query += " ,id ";
 				query += way;
 				
-				cout << query << endl;
+				// cout << query << endl;
 				
 				// Get sequence resultset from database and populate vector of object
 				MYSQL_RES *seq = openRecordset(query);
@@ -129,11 +129,11 @@ class PlayScenari
 					float _fade = stof(seqrow[2]);
 					Sequence _sequence(sequence.size(), _id, _hold, _fade);
 					sequence.push_back(_sequence);
-					cout << sequence.size() << " | " << _id  << " | " << _hold  << " | " << _fade << endl; 
+					// cout << sequence.size() << " | " << _id  << " | " << _hold  << " | " << _fade << endl; 
 				}
 				
 				int seqrows = sequence.size();
-				cout << "SEQROWS " << seqrows << endl;
+				// cout << "SEQROWS " << seqrows << endl;
 				if (seqrows != 0) 
 				{
 					// Each time we call this function, increase i to get the  next step of sequence
@@ -168,23 +168,23 @@ class PlayScenari
 		
 		void GetNextTicks()
 		{
-			cout << "GetNextTicks " << sequence.size() << endl;
+			//cout << "GetNextTicks " << sequence.size() << endl;
 			//exit(0);
 			int seqrows = sequence.size();
 			if (seqrows != 0) 
 			{
 				int hold_time = (sequence.at(current_i)).hold;
 				int fade_time = (sequence.at(current_i)).fade;
-				cout << "hold_time " << hold_time << endl;
-				cout << "fade_time " << fade_time << endl;
+				//cout << "hold_time " << hold_time << endl;
+				//cout << "fade_time " << fade_time << endl;
 				//exit(0);
 				try
 				{
 					// milliseconds
 					hold_interval = abs((int)((float)(hold_time) * 1000)); 
 					fade_interval = abs((int)((float)(fade_time) * 1000)); 
-					cout << "hold_interval " << hold_interval << endl;
-					cout << "hold_interval " << hold_interval << endl;
+					//cout << "hold_interval " << hold_interval << endl;
+					//cout << "hold_interval " << hold_interval << endl;
 					//exit(0);
 				}
 				catch (int e)
@@ -197,13 +197,13 @@ class PlayScenari
 				// Hold: reset counter and define ticks
 				hold_ticks = (float)(hold_interval / tick_interval);
 				hold_counter = hold_ticks;
-				cout << "hold_ticks " << hold_ticks << endl;
-				cout << "hold_counter " << hold_counter << endl;
+				//cout << "hold_ticks " << hold_ticks << endl;
+				//cout << "hold_counter " << hold_counter << endl;
 				// Fade: reset counter and define ticks
 				fade_ticks = (float)(fade_interval / tick_interval);
 				fade_counter = fade_ticks;
-				cout << "fade_ticks " << fade_ticks << endl;
-				cout << "fade_counter " << fade_counter << endl;
+				//cout << "fade_ticks " << fade_ticks << endl;
+				//cout << "fade_counter " << fade_counter << endl;
 				//exit(0);
 			}
 		}
@@ -229,7 +229,7 @@ class PlayScenari
 				
 				if(loglevel > 0)
 				{
-					//cout << "Delta:" << buildDmxFrame((vector<int>)_delta) << endl;
+					cout << "Delta:"<< endl << buildDmxFrame(_delta) << endl;
 					cout << "Iter:" << fade_ticks << endl;
 				}
 			}
@@ -246,7 +246,7 @@ class PlayScenari
 		
 		void ChangeStep()
 		{
-			cout << "ChangeStep" << endl;
+			//cout << "ChangeStep" << endl;
 			GetNextTicks();
 			SwitchFrame();
 			GetNextStep();
@@ -266,7 +266,7 @@ class PlayScenari
 			query += to_string(step_id);
 			query += " ORDER BY id";
 			
-			cout << "FRAMEDMX Query: " << query << endl;
+			//cout << "FRAMEDMX Query: " << query << endl;
 			
 			// SQL scenari infos
 			MYSQL_RES *framedmx = openRecordset(query);
@@ -312,9 +312,12 @@ class PlayScenari
 				for(int i = 0; i < alldmx.size(); i++)
 				{
 					dmxnum.push_back(0);
-				}
+				}				
 			}			
-			
+			if (loglevel > 0)
+			{
+				cout << "dmxnum" << endl << buildDmxFrame(dmxnum) << endl ;
+			}
 			// Return valid frame
 			return dmxnum;
 		}
@@ -376,8 +379,12 @@ class PlayScenari
 					ChangeStep();
 				}
 				
-				cout << "NEW_FRAME : " << new_frame.size() << endl;
+				//cout << "NEW_FRAME : " << new_frame.size() << endl;
 				//exit(0);
+			}
+			else
+			{
+				cout << "Stop" << endl ;
 			}
 		}
 		

@@ -32,6 +32,17 @@ string buildDmxFrame(vector<int> frame) {
 	return result;
 }
 
+string buildDmxFrame(vector<float> frame) {
+	string result="";
+	for(int f=0; f<frame.size(); f++) {
+		result.append(to_string(frame[f]));
+		if (f<frame.size()-1) {
+			result.append(",");
+		}
+	}
+	return result;
+}
+
 string PrepareString(string stringinput) {
 	string str = stringinput;
 	for (int i=0; i<str.length(); i++)
@@ -212,6 +223,10 @@ int sqlFramerate()
 	{
 		result = stoi(sfreq_ms);
 	}
+	else
+	{
+		cout << "default to 40 fps" << endl;
+	}
 	return result;
 }
 
@@ -228,6 +243,10 @@ int sqlUniverses()
 	if(hasOnlyDigits(sfreq_ms)) 
 	{
 		result = stoi(sfreq_ms);
+	}
+	else
+	{
+		cout << "default to 1 universe" << endl;
 	}
 	return result;
 }

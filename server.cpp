@@ -23,8 +23,8 @@ g++ -pthread -o server $(mysql_config --cflags)  server.cpp $(mysql_config --lib
 #include <ola/thread/Thread.h>
 
 #include "dmx_utils.h"
-#include "dmxsender.h"		// instanciated object approach
-//#include "delta.h"		// singleton approach
+#include "dmxsender.h"
+
 
 using namespace std;
 using std::cout;
@@ -38,28 +38,12 @@ DmxSender ola_thread;
 
 bool SendData(ola::client::OlaClientWrapper *wrapper, DmxSender *d) 
 {
-	d->SendDmxFrame(/*wrapper*/);	
-	return true;
-	/*static unsigned int universe = 1;
-	static unsigned int i = 0;
-	ola::DmxBuffer buffer;
- 
- 	buffer.Blackout();
- 	buffer.SetChannel(0, i);
- 	wrapper->GetClient()->SendDMX(universe, buffer, ola::client::SendDMXArgs());
- 	if (++i == 100) 
- 	{
- 		//wrapper->GetSelectServer()->Terminate();
- 		i=0;
- 	}
- 	return true;*/
+	d->SendDmxFrame();	
+	return true;	
 }
 
 void parseMessage(string msg) 
 {
-	// singleton call
-	// DmxSender &d = DmxSender::getInstance();
-
 	if(msg.size() == 0)
 	{
 		return;

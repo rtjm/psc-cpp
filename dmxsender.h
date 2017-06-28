@@ -57,7 +57,7 @@ class DmxSender: public ola::thread::Thread  {
 		 	}
 		 	// SQL Framerate
 			_tick_interval = sqlFramerate();	
-		 	cout << "OLA SUCCEED FREQ MS:" << _tick_interval << endl;
+		 	cout << "OLA SUCCEED: FREQ MS:" << _tick_interval << endl;
 		 	// SQL Universe
 			univ_qty = sqlUniverses();		
 			cout << "univ_qty:" << univ_qty << endl;	
@@ -78,13 +78,16 @@ class DmxSender: public ola::thread::Thread  {
     	DmxSender() 
 		{ 			
 			Terminated = false;			
-			cout << "CONSTRUCTOR" << endl;
+			//cout << "CONSTRUCTOR" << endl;
 		}	
 			
 		bool SendDmxFrame(/*ola::client::OlaClientWrapper *_wrapper*/)
 		{
 			// Ask frame for each scenari and make the whole frame, repeated every _tick_interval
-			
+			if (univloglevel > 1)
+			{
+				log("before sending");
+			}
 			
 			// Send data to universes
 			for(int u = 0; u < univ_qty; u++)
@@ -95,9 +98,13 @@ class DmxSender: public ola::thread::Thread  {
 					partialFrameVector.push_back(vectorWholeDmxFrame[i]);		
 				}
 				// vectorWholeDmxFrame splitted in partialFrameVector: equivalent of FramePart in SplittedFrame (python)
+				if (univloglevel > 0)
+				{
+					cout << "FRAME_FOR_UNIV " << u << endl;
+				}
 				string partialFrame = buildDmxFrame(partialFrameVector);
 				ola::DmxBuffer buffer;
- 				buffer.Blackout();
+ 				buffer.Blackout(); 				
 				buffer.SetFromString(partialFrame);
 				try 
 				{
@@ -111,33 +118,35 @@ class DmxSender: public ola::thread::Thread  {
 				}				
 			}			
 			
+			if (univloglevel > 1)
+			{
+				log("before computing");
+			}
 			// For each scenari in list
 			for(int s = 0; s < scen_ids.size(); s++)			
 			{				
 				try
 				{
-					// store instance in dict, only once
-					
+					// create scenari instance if needed					
 					int scenarid = scen_ids[s];
 					auto search = my_scens.find(scenarid);
 					if(search == my_scens.end())
 					{
-						//PlayScenari p(scenarid,_tick_interval);					
-						//cout << "Playscenari object created at address	" << &p << endl;
-						//my_scens.insert(std::make_pair(scenarid, p));
+						// store instance in dict, only once
 						my_scens.insert(std::make_pair(scenarid, new PlayScenari(scenarid, _tick_interval)));
-						
-						
-						// Dump my_scens
+												
+						// Dump my_scens - equivalent of python code: print self.my_scens
 						for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
 						{
-							std::cout << it->first << " " << &it->second << endl;
-						}
-						//currentplay = &p;
+							cout << it->first << " " << &it->second << endl;
+						}						
 					}
-					PlayScenari *currentplay = my_scens.at(scenarid);
-					cout << "current PlayScenari " << currentplay->scenari << "/" << currentplay->new_frame.size() << endl;
-					AssignChannels(currentplay->patch, currentplay->new_frame);
+					
+					// for each instance, compute frame
+					PlayScenari *scen = my_scens.at(scenarid);
+					scen->ComputeNextFrame();
+					// cout << "current PlayScenari " << currentplay->scenari << "/" << currentplay->new_frame.size() << endl;
+					AssignChannels(scen->patch, scen->new_frame);
 					
 				}
 				catch (int e)
@@ -145,16 +154,11 @@ class DmxSender: public ola::thread::Thread  {
 					cout << "NOT STARTED" << endl;
 				}	
 			}
-
-			// for each instance, compute frame
-			if (my_scens.size() > 0)
-			{
-				for(auto it = my_scens.cbegin(); it != my_scens.cend(); ++it)
-				{
-					PlayScenari *p = it->second;
-					p->ComputeNextFrame();
 					
-				}
+			if (univloglevel > 1)
+			{
+				log("after computing");
+				log ("---");
 			}				
 			return true;
 		}
@@ -162,7 +166,7 @@ class DmxSender: public ola::thread::Thread  {
 		void AssignChannels(int offset, vector<int> values)
 		{
 			//vectorWholeDmxFrame.at(offset) = values.at(offset);
-			cout << "AssignChannels " << values.size() << " OFFSET " << offset << endl;
+			//cout << "AssignChannels " << values.size() << " OFFSET " << offset << endl;
 			for (int i = offset; i < offset + values.size(); i++)
 			{
 				vectorWholeDmxFrame.at(i) = values.at(i-offset);
@@ -174,13 +178,9 @@ class DmxSender: public ola::thread::Thread  {
 			if(std::find(scen_ids.begin(),scen_ids.end(),scenarid)==scen_ids.end())			// Check not to add twice
 			{				
 				scen_ids.push_back(scenarid);		
-				log("Added scen_id");
+				//log("Added scen_id");
 			}
-			else
-			{
-				log("Scenarid already there");
-			}
-			cout << "StartScenari CALLED IN DELTA:" << scenarid << " tick_interval "<< _tick_interval  << " univ_qty "<< univ_qty << endl;
+			//cout << "StartScenari CALLED IN DELTA:" << scenarid << " tick_interval "<< _tick_interval  << " univ_qty "<< univ_qty << endl;
 		}
 		
 		void ChangeUnivLogLevel()
@@ -190,7 +190,7 @@ class DmxSender: public ola::thread::Thread  {
 			{
 				univloglevel = 0;
 			}
-			cout << "ChangeUnivLogLevel CALLED IN DELTA:" << endl;
+			//cout << "ChangeUnivLogLevel CALLED IN DELTA:" << endl;
 		}
 
 		void ChangeLogLevel(int scenarid)
@@ -205,36 +205,30 @@ class DmxSender: public ola::thread::Thread  {
 					search->second->loglevel = 0;
 				}
 			}			
-			cout << "ChangeLogLevel CALLED IN DELTA:" << scenarid << endl;
+			//cout << "ChangeLogLevel CALLED IN DELTA:" << scenarid << endl;
 		}
 
 		void HaltDmxSender()
 		{
 			_activesender = false;
-			cout << "HaltDmxSender CALLED IN DELTA:" << endl;
+			//cout << "HaltDmxSender CALLED IN DELTA:" << endl;
 		}
 
 		void ResumeDmxSender()
 		{
 			_activesender = true;
 			SendDmxFrame();
-			cout << "ResumeDmxSender CALLED IN DELTA:" << endl;
+			//cout << "ResumeDmxSender CALLED IN DELTA:" << endl;
 		}
 
 		void CloseDmxSender()
 		{
 			m_wrapper.GetSelectServer()->Terminate();
-			cout << "CloseDmxSender CALLED IN DELTA:" << endl;
+			//cout << "CloseDmxSender CALLED IN DELTA:" << endl;
 		}
 
 		void StopScenari(int scenarid)
 		{
-			/*auto search = my_scens.find(scenarid);
-			if(search != my_scens.end())
-			{
-				// remove id from list
-				my_scens
-			}		*/
 			for (int i = 0; i < scen_ids.size(); i++)
 			{
 				if (scen_ids.at(i) == scenarid)
@@ -243,8 +237,6 @@ class DmxSender: public ola::thread::Thread  {
 					break;
 				}
 			}
-			
-			cout << "StopScenari CALLED IN DELTA:" << scenarid << endl;
 		}
 
 		void StatusScenari(int scenarid)
@@ -256,7 +248,7 @@ class DmxSender: public ola::thread::Thread  {
 				auto p = search->second;
 				//p.Status();				
 			}
-			cout << "StatusScenari CALLED IN DELTA:" << scenarid << endl;
+			//cout << "StatusScenari CALLED IN DELTA:" << scenarid << endl;
 		}
 
 		void ResetScenari(int scenarid)
@@ -266,25 +258,25 @@ class DmxSender: public ola::thread::Thread  {
 			{
 				my_scens.erase(search);
 			}
-			cout << "ResetScenari CALLED IN DELTA:" << scenarid << endl;
+			//cout << "ResetScenari CALLED IN DELTA:" << scenarid << endl;
 		}
 
 		void StopAll()
 		{
 			scen_ids.clear();
-			cout << "StopAll CALLED IN DELTA:" << endl;
+			//cout << "StopAll CALLED IN DELTA:" << endl;
 		}
 
 		void ResetAll()
 		{
 			my_scens.clear();
-			cout << "ResetAll CALLED IN DELTA:" << endl;
+			//cout << "ResetAll CALLED IN DELTA:" << endl;
 		}
 
 		void BlackOut()
 		{
 			vectorWholeDmxFrame = InitVector(univ_qty);		// size vectorWholeDmxFrame to 512*univ_qty and fill 0
-			cout << "BlackOut CALLED IN DELTA:" << endl;
+			//cout << "BlackOut CALLED IN DELTA:" << endl;
 		}
 		
 		
