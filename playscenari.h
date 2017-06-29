@@ -21,7 +21,7 @@ class PlayScenari
 			
 	protected:
 	public:
-		int scenari, tick_interval, loglevel = 1, current_i = -1;	
+		int scenari, tick_interval, loglevel = 0, current_i = -1;	
 		bool _activescenari = true;
 		int patch, patch_after, universe,  reverse, nextplay_stepid, hold_interval, fade_interval;
 		float fade_ticks, hold_ticks, fade_counter, hold_counter;
@@ -117,10 +117,11 @@ class PlayScenari
 				query += " ,id ";
 				query += way;
 				
-				// cout << query << endl;
-				
+				//cout << query << endl;
+				//log ("before query");
 				// Get sequence resultset from database and populate vector of object
 				MYSQL_RES *seq = openRecordset(query);
+				//log("after query");
 				sequence.clear();
 				while(auto seqrow = mysql_fetch_row(seq))
 				{
@@ -133,7 +134,7 @@ class PlayScenari
 				}
 				
 				int seqrows = sequence.size();
-				// cout << "SEQROWS " << seqrows << endl;
+				//cout << "SEQROWS " << seqrows << endl;
 				if (seqrows != 0) 
 				{
 					// Each time we call this function, increase i to get the  next step of sequence

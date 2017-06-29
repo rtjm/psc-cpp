@@ -189,7 +189,7 @@ void finish_with_error(MYSQL *con)
 }
 
 MYSQL_RES* openRecordset(string query)
-{	
+{		
 	MYSQL_RES *resultset;
 	MYSQL_ROW row;
 	MYSQL *connection, mysql;
@@ -197,15 +197,28 @@ MYSQL_RES* openRecordset(string query)
 	string usr = GetKey("DB_USER");
 	string pswd = GetKey("DB_PASS");
 	string database = GetKey("DB_BASE");
+	
 	mysql_init(&mysql);
+	
 	connection = mysql_real_connect(&mysql,host.c_str(),usr.c_str(),pswd.c_str(),database.c_str(),0,0,0);
-
-   	if (mysql_query(connection, query.c_str())) 
+	
+	//cout << "mysql_query try catch" << endl;
+	//cout << query << endl;
+	try
 	{
-	  	finish_with_error(connection);
+	   	if (mysql_query(connection, query.c_str())) 
+		{
+			cout << "finish_with_error" << endl;
+		  	finish_with_error(connection);
+	   	}
    	}
-
+   	catch(std::exception& e)
+   	{
+   		std::cerr << "exception catched:" << e.what() << endl;
+   	}
+	//cout << "mysql_store_result" << endl;
 	resultset = mysql_store_result(connection);	
+	mysql_close(connection);
 	return resultset;
 }
 

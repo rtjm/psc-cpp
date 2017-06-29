@@ -59,7 +59,7 @@ void parseMessage(string msg)
 	{
 		command = msg;
 	}	
-	cout << "COMMAND:" << command << " DATA: " << data << endl;
+	//cout << "COMMAND:" << command << " DATA: " << data << endl;
 	if (command == "start" || command == "stop" || command == "status" || command == "reset" || command == "log")
 	{
 		if(data == "")
@@ -102,10 +102,10 @@ void parseMessage(string msg)
 	
 	if(command == "start")
 	{	
-		cout << "Calling d.StartScenari(idata);" << endl;	
+		//cout << "Calling d.StartScenari(idata);" << endl;	
 		//d->StartScenari(idata);
 		ola_thread.StartScenari(idata);
-		cout << "Called d.StartScenari(idata);" << endl;
+		//cout << "Called d.StartScenari(idata);" << endl;
 	}
 	
 	if(command == "stop")
@@ -160,18 +160,18 @@ void *connection_handler(void *socket_desc)
 
     //Receive a message from client
     while((read_size = recv(sock , client_message , 2000 , 0)) > 0 )
-    {
+    {/*
 		log("___________________");		
         log("Message received");
 		log(client_message);
-		log("Parsing message");
+		log("Parsing message");*/
 		parseMessage(client_message);
 		write(sock, "Message received", 16);
     }
 
     if(read_size == 0)
     {
-        log("Client disconnected");
+        //log("Client disconnected");
         fflush(stdout);
     }
     else if(read_size == -1)
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 	
 	while((client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
-        log("Connection accepted");
+        //log("Connection accepted");
 
         pthread_t sniffer_thread;
         new_sock = (int*) malloc(1);
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
             error("ERROR pthread_create");
         }
 
-        log("Handler assigned");
+        //log("Handler assigned");
     }
 
 
